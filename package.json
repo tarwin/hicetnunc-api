@@ -4,7 +4,9 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "start": "node dev.js"
+        "start": "node dev.js",
+        "deploy:dev": "aws lambda update-function-code --profile hendev --region us-east-2 --function-name HenDevApi --zip-file fileb://./lambda.zip",
+        "logs": "./aws-logs-tail-group.sh get_loglines /aws/lambda/HenDevApi"
     },
     "repository": {
         "type": "git",
