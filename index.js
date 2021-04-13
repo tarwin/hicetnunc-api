@@ -35,54 +35,57 @@ const customFloor = function (value, roundTo) {
 
 const ONE_MINUTE_MILLIS = 60 * 1000
 
+const fs = require('fs')
+
+// min inclusive, max exclusive
+const rand = (min, max) => {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 const randomFeed = async (counter, res) => {
-    var feed = await conseilUtil.getArtisticUniverse(0)
-    feed = offset(_.shuffle(feed), counter)
-    feed = await feed.map(async e => {
-        e.token_info = await getIpfsHash(e.ipfsHash)
-        e.token_id = parseInt(e.objectId)
-        return e
-    })
-    var promise = Promise.all(feed.map(e => e))
-    promise.then(async (results) => {
-        var aux_arr = results.map(e => e)
-        res.json({ result: aux_arr })
-    })
+    const latestData = fs.readFileSync(`./cache/latest.json`)
+    const latestJson = desc(JSON.parse(latestData))
+    const lastId = parseFloat(latestJson[0].objectId)
+
+    // get 10 random
+    const aux_arr = []
+    for (let i=0; i<10; i++) {
+        const r = rand(0, lastId)
+        const l = `./cache/20s/${r - r % 20 + 1}-${r - r % 20 + 20}.json`
+        console.log(l)
+        const data = fs.readFileSync(l)
+        const json = JSON.parse(data)
+        const obj = json[rand(0, json.length)]
+        if (obj && !Array.isArray(obj)) {
+            aux_arr.push(obj)
+        } else {
+            i--
+        }
+    }
+
+    res.json({ result: aux_arr })
 }
 
 const getFeed = async (res, counter, featured, max_time) => {
-    const now_time = Date.now()
-    const immutable = (typeof max_time !== 'undefined') && (max_time < now_time)
-    max_time = (typeof max_time !== 'undefined') ? max_time : customFloor(now_time, ONE_MINUTE_MILLIS)
-    
-    console.log(`feed, featured: ${featured}`)
-    var arr
-    if (featured) {
-        arr = await conseilUtil.getFeaturedArtisticUniverse(0, max_time)
+    const latestData = fs.readFileSync(`./cache/latest.json`)
+    const latestJson = desc(JSON.parse(latestData))
+    const lastId = parseFloat(latestJson[0].objectId)
+
+    let aux_arr = []
+    if (!counter) {
+        aux_arr = latestJson
     } else {
-        arr = await conseilUtil.getArtisticUniverse(0, max_time)
+        const r = lastId - latestJson.length - ((counter - 1) * 20)
+        const l = `./cache/20s/${r - r % 20 + 1}-${r - r % 20 + 20}.json`
+        console.log(l)
+        const data = fs.readFileSync(l)
+        const json = JSON.parse(data)
+        aux_arr = json
     }
 
-    var feed = offset(desc(arr), counter)
-    feed = await feed.map(async e => {
-        e.token_info = await getIpfsHash(e.ipfsHash)
-        e.token_id = parseInt(e.objectId)
-        console.log(e)
-        return e
-    })
-    var cache_time
-    if (immutable) {
-        cache_time = 60 * 10
-    }
-    else {
-        cache_time = Math.floor(((max_time + ONE_MINUTE_MILLIS) - now_time) / 1000)
-    }
-    var promise = Promise.all(feed.map(e => e))
-    return promise.then(async (results) => {
-        var aux_arr = results.map(e => e)
-        res.set('Cache-Control', `public, max-age=${cache_time}`)
-        res.json({ result: aux_arr })
-    })
+    res.json({ result: aux_arr })
 }
 
 const getTzLedger = async (tz, res) => {

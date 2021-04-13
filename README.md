@@ -1,31 +1,10 @@
-# hicetnunc API
+# NOT FOR PRODUCTION
 
-API backend for the [hicetnunc.xyz](https://hicetnunc.xyz) NFT Art House deployed on the Tezos blockchain. Used in conjunction with [hicetnunc-ui](https://github.com/hicetnunc2000/hicetnunc). This code has been tested with @nodejs 12.20.1 and @npm 6.14.10.
+This is just a test to see how we could work with JSON as a cache
 
-Please take a look at the [issues list](https://github.com/hicetnunc2000/hicetnunc-api/issues) for contributions.
+This should really be done from the front end. JUST A HACK. VERY HACKY!
 
-Licensed under MIT license.
+# How to use
 
-Built with APIs from @Cryptonomic and @baking-bad.
-
-## Running
-
-```bash
-npm i
-npm start
-```
-
-### Nodemon
-
-```bash
-nodemon dev.js
-```
-
-### Enpoints
-
-```
-POST /feed :counter
-POST /tz :tz
-POST /objkt :objkt_id
-POST /hdao :counter
-```
+- Unzip `cache.zip`. Should unzip to cache directory.
+- Run `node dev.js`
